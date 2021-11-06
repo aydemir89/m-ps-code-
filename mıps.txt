@@ -1,0 +1,112 @@
+
+main:
+addi $v0, $zero,5 #v0=5 
+addi $t0, $v0,0 #t0=v0=5(n=5)
+addi $v0, $zero,6 #v0=6
+addi $t1, $v0,0 #t1=v0=6(m=6)
+addi $sp, $sp, -16 #make space
+sw $t0, 0($sp) # $t0=n (store t0)
+sw $t1, 4($sp) # $t1=m (store t1)
+sw $ra, 12($sp)#store return address
+jal minTiles
+lw $s0, 8($sp)
+lw $ra, 12($sp)
+addi $sp, $sp, 16
+addi $a0, $s0,0 
+addi $v0, $zero,1
+# return O;
+exit:
+addi $v0 ,$zero, 10
+syscall
+# int minîiles(int n, int m)
+# 0($sp) = n
+# 4($sp) = m
+# value should be return in 8($sp)
+minTiles:
+# loading arguments in temporary register
+lw $t0, 0($sp)
+lw $t1, 4($sp)
+# if (n == 0 || m==0)
+seq $t2, $0, $t0
+seq $t3, $0, $t1
+and $t4, $t2, $t3
+beq $t4, 1, returnO
+# else if (n%2 == 0&& m%2==0)
+andi $t2, $t0, 1
+andi $t3, $t1 , 1
+or $t4, $t2, $t3
+beq $t4,$zero,botheven
+# else if (n%2 == 0 && m%2==1)
+beq $t2, 0, neven
+# else if (n%2 == 1 && m%2 ==0)
+beq $t3, 0, meven
+# else
+else:
+# return (n + m - 1 + minTiles(n/2, m/2)
+addi $sp, $sp, -16
+srl $a0, $t0, 1
+srl $a1, $t1, 1
+sw $a0, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 12($sp)
+jal minTiles
+lw $ra, 12($sp)
+lw $v0, 8($sp)
+addi $sp, $sp, 16
+lw $t0, 0($sp)
+lw $t1, 4($sp)
+add $v0, $v0, $t0
+add $v0, $v0, $t1
+addi $v0, $v0, -1
+sw $v0, 8($sp)
+jr $ra
+# return 0;
+returnO:
+sw $0, 8($sp)
+jr $ra
+# return minTiles(n/2, m/2);
+botheven:
+addi $sp, $sp, -16
+srl $a0, $t0, 1
+srl $a1, $t1, 1
+sw $a0, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 12($sp)
+jal minTiles
+lw $ra, 12($sp)
+lw $v0, 8($sp)
+addi $sp, $sp, 16
+sw $v0, 8($sp)
+jr $ra
+# return (n + minTiles(n/2, m/2));
+neven:
+addi $sp, $sp, -16
+srl $a0, $t0, 1
+srl $a1, $t1, 1
+sw $a0, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 12($sp)
+jal minTiles
+lw $ra, 12($sp)
+lw $v0, 8($sp)
+addi $sp, $sp, 16
+lw $t0, 0($sp)
+add $v0, $v0, $t0
+sw $v0, 8($sp)
+jr $ra
+# return (m + minTiles(n/2, m/2));
+meven:
+addi $sp, $sp, -16
+srl $a0, $t0, 1
+srl $a1, $t1, 1
+sw $a0, 0($sp)
+sw $a1, 4($sp)
+sw $ra, 12($sp)
+jal minTiles
+lw $ra, 12($sp)
+lw $v0, 8($sp)
+addi $sp, $sp, 16
+lw $t1, 4($sp)
+add $v0, $v0, $t1
+sw $v0, 8($sp)
+jr $ra
